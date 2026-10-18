@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { analyzePhoto } from "@/server/analyze.functions";
+import { analyzePhoto } from "@/lib/analyze.functions";
 import { CATEGORIES, classify, type Category, type CullSettings, type PhotoResult } from "@/lib/culling";
 import { parseXmp } from "@/lib/xmp";
 import { fsSupported, isJpg, listJpgs, pickDir, prepareImage, renderOutput, writeToDir, type DirHandle } from "@/lib/images";
