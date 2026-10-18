@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       albums: {
         Row: {
+          auto_exposure: boolean
           created_at: string
           focus_threshold: number
           id: string
@@ -28,6 +29,7 @@ export type Database = {
           require_main_subject: boolean
         }
         Insert: {
+          auto_exposure?: boolean
           created_at?: string
           focus_threshold?: number
           id?: string
@@ -40,6 +42,7 @@ export type Database = {
           require_main_subject?: boolean
         }
         Update: {
+          auto_exposure?: boolean
           created_at?: string
           focus_threshold?: number
           id?: string

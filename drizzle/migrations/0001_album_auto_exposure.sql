@@ -1,0 +1,1 @@
+ALTER TABLE public.albums ADD COLUMN IF NOT EXISTS auto_exposure boolean NOT NULL DEFAULT true;

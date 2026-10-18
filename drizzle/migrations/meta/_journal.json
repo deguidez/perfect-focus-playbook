@@ -8,6 +8,13 @@
       "when": 1792364724067,
       "tag": "0000_photo_culling_core",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792366640175,
+      "tag": "0001_album_auto_exposure",
+      "breakpoints": true
     }
   ]
 }

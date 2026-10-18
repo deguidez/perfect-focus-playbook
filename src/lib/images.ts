@@ -1,4 +1,7 @@
 import { applyPreset, type Preset } from "./xmp";
+import { applyLut, exposureLut, luminanceHistogram } from "./exposure";
+
+export type RenderOptions = { preset: Preset | null; autoExposure: boolean } | null;
 
 export const isJpg = (name: string) => /\.(jpe?g)$/i.test(name);
 
@@ -21,9 +24,10 @@ export async function prepareImage(file: File, needAnalysis: boolean) {
   return { analysis, thumb };
 }
 
-/** Full-resolution output. Without a preset the original bytes are kept untouched. */
-export async function renderOutput(file: File, preset: Preset | null): Promise<Blob> {
-  if (!preset) return file;
+/** Full-resolution output. Without adjustments the original bytes are kept untouched. */
+export async function renderOutput(file: File, opts: RenderOptions): Promise<Blob> {
+  const preset = opts?.preset ?? null;
+  if (!preset && !opts?.autoExposure) return file;
   const bmp = await createImageBitmap(file);
   const c = document.createElement("canvas");
   c.width = bmp.width;
@@ -32,7 +36,14 @@ export async function renderOutput(file: File, preset: Preset | null): Promise<B
   ctx.drawImage(bmp, 0, 0);
   bmp.close();
   const img = ctx.getImageData(0, 0, c.width, c.height);
-  applyPreset(img.data, preset);
+  let changed = false;
+  if (opts?.autoExposure) {
+    const { hist, total } = luminanceHistogram(img.data, Math.max(1, Math.floor((c.width * c.height) / 250_000)));
+    const lut = exposureLut(hist, total);
+    if (lut) { applyLut(img.data, lut); changed = true; }
+  }
+  if (preset) { applyPreset(img.data, preset); changed = true; }
+  if (!changed) return file;
   ctx.putImageData(img, 0, 0);
   return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("Falha ao exportar"))), "image/jpeg", 0.98));
 }
