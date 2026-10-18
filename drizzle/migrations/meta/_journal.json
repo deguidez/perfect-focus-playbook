@@ -36,6 +36,13 @@
       "when": 1792367855523,
       "tag": "0004_super_admin_role",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792367880904,
+      "tag": "0005_managed_users_and_teams",
+      "breakpoints": true
     }
   ]
 }
