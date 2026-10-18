@@ -43,6 +43,13 @@
       "when": 1792367880904,
       "tag": "0005_managed_users_and_teams",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792367917234,
+      "tag": "0006_atomic_team_assignment",
+      "breakpoints": true
     }
   ]
 }

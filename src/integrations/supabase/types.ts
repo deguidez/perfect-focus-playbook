@@ -241,6 +241,10 @@ export type Database = {
         Returns: boolean
       }
       is_member: { Args: { _user_id: string }; Returns: boolean }
+      replace_team_memberships: {
+        Args: { _team_ids: string[]; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "photographer" | "super_admin"
