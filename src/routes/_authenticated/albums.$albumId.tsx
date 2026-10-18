@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { exportName } from "@/lib/naming";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAlbumSession } from "@/lib/album-session";
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/albums/$albumId")({
   component: AlbumPage,
 });
 
-type Album = CullSettings & { id: string; name: string; preset_name: string | null; preset_xmp: string | null; auto_exposure: boolean };
+type Album = CullSettings & { id: string; name: string; preset_name: string | null; preset_xmp: string | null; auto_exposure: boolean; rename_pattern: string | null };
 
 function AlbumPage() {
   const { albumId } = Route.useParams();
@@ -47,7 +49,7 @@ function AlbumPage() {
   const preset = useMemo(() => (album?.preset_xmp ? parseXmp(album.preset_xmp) : null), [album?.preset_xmp]);
 
   useEffect(() => {
-    if (album) session.setConfig({ ...album, preset, autoExposure: album.auto_exposure });
+    if (album) session.setConfig({ ...album, preset, autoExposure: album.auto_exposure, albumName: album.name, renamePattern: album.rename_pattern });
   }, [album, preset, session]);
 
   async function saveAlbum(patch: Partial<Album>) {
@@ -84,7 +86,7 @@ function AlbumPage() {
     for (let i = 0; i < done.length; i++) {
       const it = done[i]!;
       const cat = classify(it.result!, settings);
-      zip.file(`${cat}/${it.name}`, await renderOutput(it.file, session.renderOptionsFor(cat)), { compression: "STORE" });
+      zip.file(`${cat}/${session.outputName(it, cat)}`, await renderOutput(it.file, session.renderOptionsFor(cat)), { compression: "STORE" });
       setExporting({ done: i + 1, total: done.length });
     }
     const blob = await zip.generateAsync({ type: "blob", compression: "STORE" });
@@ -163,6 +165,23 @@ function AlbumPage() {
           )}
           <p className="text-xs text-muted-foreground">Aplicado nas fotos boas ao exportar. As demais saem originais.</p>
           <p className="text-xs text-muted-foreground">O trabalho continua se você for para outra página do app. Não feche a aba.</p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Renomear ao exportar</h2>
+          <Input
+            aria-label="Padrão de nome"
+            placeholder="ex: {album}_{n}"
+            value={album.rename_pattern ?? ""}
+            onChange={(e) => setAlbum({ ...album, rename_pattern: e.target.value })}
+            onBlur={(e) => saveAlbum({ rename_pattern: e.target.value.trim() || null })}
+          />
+          <p className="text-xs text-muted-foreground">
+            Use {"{album}"}, {"{n}"} (0001, 0002…), {"{original}"} e {"{categoria}"}. Vazio mantém o nome original.
+            {album.rename_pattern?.trim() && (
+              <span className="mt-1 block font-mono text-primary">→ {exportName(album.rename_pattern, { album: album.name, original: "IMG_0042.jpg", n: 1, category: "boas" })}</span>
+            )}
+          </p>
         </section>
 
         <section className="space-y-3">
