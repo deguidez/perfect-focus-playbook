@@ -1,0 +1,1 @@
+ALTER TABLE public.albums ADD COLUMN IF NOT EXISTS rename_pattern text;
