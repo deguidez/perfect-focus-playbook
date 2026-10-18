@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { exportName } from "@/lib/naming";
+import { PresetEditor } from "@/components/PresetEditor";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAlbumSession } from "@/lib/album-session";
@@ -35,6 +36,7 @@ function AlbumPage() {
   const { items, paused, inDir, outDir, autoExport } = state;
   const [album, setAlbum] = useState<Album | null>(null);
   const [filter, setFilter] = useState<Category | "all">("all");
+  const [editorOpen, setEditorOpen] = useState(false);
   const [exporting, setExporting] = useState<{ done: number; total: number } | null>(null);
 
   useEffect(() => {
@@ -158,6 +160,21 @@ function AlbumPage() {
             {album.preset_name ? <span className="text-primary">{album.preset_name}</span> : "Enviar arquivo .xmp"}
             <input type="file" accept=".xmp" className="hidden" onChange={(e) => e.target.files?.[0] && uploadPreset(e.target.files[0])} />
           </label>
+          <Button variant="secondary" className="w-full" onClick={() => setEditorOpen(true)}>
+            {album.preset_name ? "Editar preset" : "Criar preset"}
+          </Button>
+          <PresetEditor
+            open={editorOpen}
+            onOpenChange={setEditorOpen}
+            initial={preset}
+            initialName={album.preset_name}
+            samples={list.filter((i) => i.thumb).slice(0, 30).map((i) => i.thumb!)}
+            onSave={async (xmp, name) => {
+              await saveAlbum({ preset_xmp: xmp, preset_name: name });
+              setEditorOpen(false);
+              toast.success("Preset salvo — aplicado nas fotos boas ao exportar");
+            }}
+          />
           {album.preset_name && (
             <button className="text-xs text-muted-foreground underline" onClick={() => saveAlbum({ preset_xmp: null, preset_name: null })}>
               remover preset

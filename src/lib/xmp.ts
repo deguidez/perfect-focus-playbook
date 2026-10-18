@@ -124,3 +124,29 @@ export function applyPreset(data: Uint8ClampedArray, p: Preset) {
     data[i + 2] = b;
   }
 }
+
+export const EMPTY_PRESET: Preset = {
+  exposure: 0, contrast: 0, highlights: 0, shadows: 0, whites: 0, blacks: 0,
+  temperature: 0, tint: 0, vibrance: 0, saturation: 0, curve: [],
+};
+
+/** Writes a preset as a Lightroom-compatible XMP so in-app presets are stored and downloaded like uploaded ones. */
+export function serializeXmp(p: Preset, name: string): string {
+  const s = (v: number, d = 0) => (v > 0 ? "+" : "") + v.toFixed(d);
+  const curve = p.curve.length
+    ? `\n   <crs:ToneCurvePV2012><rdf:Seq>${p.curve.map(([x, y]) => `<rdf:li>${x}, ${y}</rdf:li>`).join("")}</rdf:Seq></crs:ToneCurvePV2012>`
+    : "";
+  return `<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="" xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
+   crs:PresetType="Normal" crs:Name="${name.replace(/[<>&"]/g, "")}" crs:ProcessVersion="11.0"
+   crs:Exposure2012="${s(p.exposure, 2)}" crs:Contrast2012="${s(p.contrast)}"
+   crs:Highlights2012="${s(p.highlights)}" crs:Shadows2012="${s(p.shadows)}"
+   crs:Whites2012="${s(p.whites)}" crs:Blacks2012="${s(p.blacks)}"
+   crs:IncrementalTemperature="${s(p.temperature)}" crs:IncrementalTint="${s(p.tint)}"
+   crs:Vibrance="${s(p.vibrance)}" crs:Saturation="${s(p.saturation)}">${curve}
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>
+`;
+}
