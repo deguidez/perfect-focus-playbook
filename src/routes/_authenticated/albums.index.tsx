@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/albums/")({
       { name: "description", content: "Seus álbuns de fotos esportivas." },
       { property: "og:title", content: "Álbuns — FocoAI" },
       { property: "og:description", content: "Seus álbuns de fotos esportivas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Albums,
@@ -35,7 +37,8 @@ function Albums() {
     e.preventDefault();
     if (!name.trim()) return;
     const { data: u } = await supabase.auth.getUser();
-    const { data, error } = await supabase.from("albums").insert({ name: name.trim(), owner_id: u.user!.id }).select("id").single();
+    if (!u.user) { toast.error("Entre novamente para criar um álbum."); return; }
+    const { data, error } = await supabase.from("albums").insert({ name: name.trim(), owner_id: u.user.id }).select("id").single();
     if (error) { toast.error(error.message); return; }
     setName("");
     qc.invalidateQueries({ queryKey: ["albums"] });

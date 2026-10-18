@@ -23,6 +23,8 @@ export const Route = createFileRoute("/_authenticated/albums/$albumId")({
       { name: "description", content: "Seleção de fotos com IA." },
       { property: "og:title", content: "Álbum — FocoAI" },
       { property: "og:description", content: "Seleção de fotos com IA." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AlbumPage,
