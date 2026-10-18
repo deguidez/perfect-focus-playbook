@@ -37,3 +37,11 @@ describe("parseXmp", () => {
     expect(p.curve).toEqual([[0, 10], [255, 245]]);
   });
 });
+
+describe("in-app preset", () => {
+  it("saved preset reads back with the same adjustments", async () => {
+    const { serializeXmp, EMPTY_PRESET } = await import("./xmp");
+    const p = { ...EMPTY_PRESET, exposure: 0.5, contrast: 20, shadows: -15, temperature: 10, saturation: -5 };
+    expect(parseXmp(serializeXmp(p, "Corrida"))).toEqual(p);
+  });
+});
