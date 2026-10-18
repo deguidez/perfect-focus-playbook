@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { analyzePhoto } from "./analyze.functions";
 import { classify, type Category, type CullSettings, type PhotoResult } from "./culling";
 import type { Preset } from "./xmp";
+import { exportName } from "./naming";
 import { isJpg, listJpgs, removeFromDir, prepareImage, renderOutput, writeToDir, type DirHandle } from "./images";
 
 export type Result = PhotoResult & { notes?: string | null };
@@ -15,8 +16,10 @@ export type Item = {
   result?: Result | undefined;
   error?: string | undefined;
   exported?: Category | undefined;
+  exportedName?: string | undefined;
+  seq: number;
 };
-export type SessionConfig = CullSettings & { preset: Preset | null; autoExposure: boolean };
+export type SessionConfig = CullSettings & { preset: Preset | null; autoExposure: boolean; albumName: string; renamePattern: string | null };
 export type SessionState = {
   items: Record<string, Item>;
   paused: string | null;
@@ -78,9 +81,10 @@ export class AlbumSession {
     const fresh = files.filter((f) => isJpg(f.name) && !this.state.items[f.name]);
     if (!fresh.length) return;
     const next: Record<string, Item> = {};
-    for (const f of fresh) {
+    let seq = Object.keys(this.state.items).length;
+    for (const f of fresh.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))) {
       const prev = this.known.get(f.name);
-      next[f.name] = { name: f.name, file: f, status: prev ? "done" : "pending", result: prev };
+      next[f.name] = { name: f.name, file: f, status: prev ? "done" : "pending", result: prev, seq: ++seq };
     }
     this.set({ items: { ...this.state.items, ...next } });
     for (const f of fresh) {
@@ -171,7 +175,7 @@ export class AlbumSession {
     if (error) toast.error(error.message);
     const outDir = this.state.outDir;
     if (oldFolder && outDir && this.config && classify(result, this.config) !== oldFolder) {
-      await removeFromDir(outDir, oldFolder, name);
+      await removeFromDir(outDir, oldFolder, item.exportedName ?? name);
       this.update(name, { exported: undefined });
       this.drainExports();
     }
@@ -193,6 +197,11 @@ export class AlbumSession {
     this.drainExports();
   }
 
+  outputName(item: Item, cat: Category) {
+    const c = this.config;
+    return exportName(c?.renamePattern, { album: c?.albumName ?? "", original: item.name, n: item.seq, category: cat });
+  }
+
   renderOptionsFor(cat: Category) {
     const c = this.config;
     return cat === "boas" && c ? { preset: c.preset, autoExposure: c.autoExposure } : null;
@@ -209,8 +218,9 @@ export class AlbumSession {
           const cur = this.state.items[it.name];
           if (!cur?.result || !this.config || this.state.outDir !== outDir) return;
           const cat = classify(cur.result, this.config);
-          await writeToDir(outDir, cat, cur.name, await renderOutput(cur.file, this.renderOptionsFor(cat)));
-          this.update(cur.name, { exported: cat });
+          const fileName = this.outputName(cur, cat);
+          await writeToDir(outDir, cat, fileName, await renderOutput(cur.file, this.renderOptionsFor(cat)));
+          this.update(cur.name, { exported: cat, exportedName: fileName });
         } catch {
           toast.error(`Falha ao gravar ${it.name}`);
         } finally {

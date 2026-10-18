@@ -26,6 +26,7 @@ export type Database = {
           preset_xmp: string | null
           reject_eyes_closed: boolean
           reject_head_cut: boolean
+          rename_pattern: string | null
           require_main_subject: boolean
         }
         Insert: {
@@ -39,6 +40,7 @@ export type Database = {
           preset_xmp?: string | null
           reject_eyes_closed?: boolean
           reject_head_cut?: boolean
+          rename_pattern?: string | null
           require_main_subject?: boolean
         }
         Update: {
@@ -52,6 +54,7 @@ export type Database = {
           preset_xmp?: string | null
           reject_eyes_closed?: boolean
           reject_head_cut?: boolean
+          rename_pattern?: string | null
           require_main_subject?: boolean
         }
         Relationships: []
