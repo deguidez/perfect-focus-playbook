@@ -55,6 +55,7 @@ function AlbumPage() {
   const known = useRef<Map<string, PhotoResult & { notes?: string | null }>>(new Map());
   const queue = useRef<string[]>([]);
   const running = useRef(0);
+  const inFlight = useRef<Set<string>>(new Set());
   const itemsRef = useRef(items);
   itemsRef.current = items;
   const pausedRef = useRef(paused);
@@ -184,14 +185,17 @@ function AlbumPage() {
   // auto export to output folder as photos finish
   useEffect(() => {
     if (!outDir || !autoExport || !settings) return;
-    const pending = Object.values(items).filter((i) => i.status === "done" && !i.exported);
+    const pending = Object.values(items).filter((i) => i.status === "done" && !i.exported && !inFlight.current.has(i.name));
     if (!pending.length) return;
+    pending.forEach((i) => inFlight.current.add(i.name));
     (async () => {
       for (const it of pending) {
         try {
           await exportOne(it, outDir);
         } catch {
           toast.error(`Falha ao gravar ${it.name}`);
+        } finally {
+          inFlight.current.delete(it.name);
         }
       }
     })();
