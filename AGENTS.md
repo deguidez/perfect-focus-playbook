@@ -14,3 +14,5 @@
 - Folder rules (which photo goes where) live in `src/lib/culling.ts` as a pure function and are recomputed live from stored AI scores. Why: changing thresholds must not cost a re-analysis.
 - Lightroom presets are approximated with per-channel LUTs in `src/lib/xmp.ts`; exports without a preset copy original bytes. Why: fast full-res processing in the browser.
 - Access: first signed-in user becomes admin; others need an `invitations` row matching their Google email (roles in `user_roles`). Why: invite-only team.
+- Album work (analysis queue, folder watch, auto-export) lives in a module-level per-album session in `src/lib/album-session.ts`, not in React state. Why: it must keep running when the user navigates away from the album page.
+- Auto exposure is a histogram-based LUT in `src/lib/exposure.ts`, applied to "boas" exports before the preset. Why: same fast per-pixel pipeline as presets.
