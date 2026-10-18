@@ -33,7 +33,7 @@ export function parseXmp(xmp: string): Preset {
   const block = /<crs:ToneCurvePV2012>([\s\S]*?)<\/crs:ToneCurvePV2012>/.exec(xmp)?.[1];
   if (block) {
     for (const m of block.matchAll(/<rdf:li>\s*(\d+)\s*,\s*(\d+)\s*<\/rdf:li>/g)) {
-      curve.push([parseInt(m[1]), parseInt(m[2])]);
+      curve.push([parseInt(m[1]!), parseInt(m[2]!)]);
     }
   }
   return {
@@ -57,11 +57,11 @@ function curveAt(curve: [number, number][], x: number): number {
   if (!curve.length) return x;
   const xi = x * 255;
   for (let i = 1; i < curve.length; i++) {
-    const [x0, y0] = curve[i - 1];
-    const [x1, y1] = curve[i];
+    const [x0, y0] = curve[i - 1]!;
+    const [x1, y1] = curve[i]!;
     if (xi <= x1) return (y0 + ((y1 - y0) * (xi - x0)) / Math.max(1, x1 - x0)) / 255;
   }
-  return curve[curve.length - 1][1] / 255;
+  return curve[curve.length - 1]![1] / 255;
 }
 
 /** Tone mapping for one normalized value. */
@@ -106,9 +106,9 @@ export function applyPreset(data: Uint8ClampedArray, p: Preset) {
   const vib = p.vibrance / 100;
   const doColor = sat !== 0 || vib !== 0;
   for (let i = 0; i < data.length; i += 4) {
-    let r = lr[data[i]];
-    let gg = lg[data[i + 1]];
-    let b = lb[data[i + 2]];
+    let r = lr[data[i]!]!;
+    let gg = lg[data[i + 1]!]!;
+    let b = lb[data[i + 2]!]!;
     if (doColor) {
       const max = Math.max(r, gg, b);
       const min = Math.min(r, gg, b);

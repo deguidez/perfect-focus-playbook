@@ -33,11 +33,11 @@ type Album = CullSettings & { id: string; name: string; preset_name: string | nu
 type Item = {
   name: string;
   file: File;
-  thumb?: string;
+  thumb?: string | undefined;
   status: "pending" | "analyzing" | "done" | "error";
-  result?: PhotoResult & { notes?: string | null };
-  error?: string;
-  exported?: Category;
+  result?: (PhotoResult & { notes?: string | null }) | undefined;
+  error?: string | undefined;
+  exported?: Category | undefined;
 };
 
 function AlbumPage() {
@@ -65,7 +65,7 @@ function AlbumPage() {
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase.from("albums").select("*").eq("id", albumId).single();
-      if (error) return toast.error("Álbum não encontrado");
+      if (error) { toast.error("Álbum não encontrado"); return; }
       setAlbum(data as Album);
       const { data: rows } = await supabase.from("photo_results").select("*").eq("album_id", albumId);
       for (const r of rows ?? []) known.current.set(r.file_name, r);
@@ -202,7 +202,7 @@ function AlbumPage() {
   }, [items, outDir, autoExport, settings, exportOne]);
 
   async function chooseIn() {
-    if (!fsSupported()) return toast.error("Use Chrome ou Edge para monitorar pastas.");
+    if (!fsSupported()) { toast.error("Use Chrome ou Edge para monitorar pastas."); return; }
     try {
       setInDir(await pickDir("read"));
     } catch (e) {
@@ -210,7 +210,7 @@ function AlbumPage() {
     }
   }
   async function chooseOut() {
-    if (!fsSupported()) return toast.error("Use Chrome ou Edge para exportar para pastas.");
+    if (!fsSupported()) { toast.error("Use Chrome ou Edge para exportar para pastas."); return; }
     try {
       const d = await pickDir("readwrite");
       setItems((p) => Object.fromEntries(Object.entries(p).map(([k, v]) => [k, { ...v, exported: undefined }])));
@@ -223,11 +223,11 @@ function AlbumPage() {
   async function downloadZip() {
     if (!settings) return;
     const done = Object.values(items).filter((i) => i.result);
-    if (!done.length) return toast.error("Nenhuma foto analisada");
+    if (!done.length) { toast.error("Nenhuma foto analisada"); return; }
     const zip = new JSZip();
     setExporting({ done: 0, total: done.length });
     for (let i = 0; i < done.length; i++) {
-      const it = done[i];
+      const it = done[i]!;
       const cat = classify(it.result!, settings);
       zip.file(`${cat}/${it.name}`, await renderOutput(it.file, cat === "boas" ? preset : null), { compression: "STORE" });
       setExporting({ done: i + 1, total: done.length });
@@ -243,7 +243,7 @@ function AlbumPage() {
 
   async function uploadPreset(file: File) {
     const text = await file.text();
-    if (!text.includes("crs:")) return toast.error("Arquivo não parece um preset do Lightroom (.xmp)");
+    if (!text.includes("crs:")) { toast.error("Arquivo não parece um preset do Lightroom (.xmp)"); return; }
     await saveAlbum({ preset_xmp: text, preset_name: file.name.replace(/\.xmp$/i, "") });
     toast.success("Preset carregado — aplicado nas fotos boas ao exportar");
   }
@@ -283,8 +283,8 @@ function AlbumPage() {
               max={95}
               step={1}
               value={[settings.focus_threshold]}
-              onValueChange={([v]) => setAlbum({ ...album, focus_threshold: v })}
-              onValueCommit={([v]) => saveAlbum({ focus_threshold: v })}
+              onValueChange={([v]) => setAlbum({ ...album, focus_threshold: v ?? 60 })}
+              onValueCommit={([v]) => saveAlbum({ focus_threshold: v ?? 60 })}
             />
             <p className="mt-2 text-xs text-muted-foreground">Abaixo deste valor a foto vai para "desfocadas". Muda na hora, sem reanalisar.</p>
           </div>

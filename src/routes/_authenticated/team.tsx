@@ -33,10 +33,10 @@ function Team() {
   async function invite(e: React.FormEvent) {
     e.preventDefault();
     const clean = email.trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(clean)) return toast.error("E-mail inválido");
+    if (!/^\S+@\S+\.\S+$/.test(clean)) { toast.error("E-mail inválido"); return; }
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase.from("invitations").insert({ email: clean, invited_by: u.user!.id });
-    if (error) return toast.error(error.message.includes("duplicate") ? "Já convidado" : error.message);
+    if (error) { toast.error(error.message.includes("duplicate") ? "Já convidado" : error.message); return; }
     setEmail("");
     toast.success("Convite criado");
     qc.invalidateQueries({ queryKey: ["invites"] });

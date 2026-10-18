@@ -22,7 +22,7 @@ export const analyzePhoto = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env['LOVABLE_API_KEY'];
     if (!apiKey) throw new Error("AI_CONFIG: IA não configurada");
 
     const { data: album } = await supabase.from("albums").select("id").eq("id", data.albumId).maybeSingle();

@@ -36,7 +36,7 @@ function Albums() {
     if (!name.trim()) return;
     const { data: u } = await supabase.auth.getUser();
     const { data, error } = await supabase.from("albums").insert({ name: name.trim(), owner_id: u.user!.id }).select("id").single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setName("");
     qc.invalidateQueries({ queryKey: ["albums"] });
     navigate({ to: "/albums/$albumId", params: { albumId: data.id } });
