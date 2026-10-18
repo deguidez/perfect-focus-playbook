@@ -55,7 +55,7 @@ export const analyzePhoto = createServerFn({ method: "POST" })
             role: "user",
             content: [
               { type: "text", text: "Analyze this photo." },
-              { type: "image", image: new URL(data.image) },
+              { type: "file", data: new URL(data.image), mediaType: "image/jpeg" },
             ],
           },
         ],
