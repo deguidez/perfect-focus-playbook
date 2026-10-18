@@ -14,16 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      albums: {
+        Row: {
+          created_at: string
+          focus_threshold: number
+          id: string
+          name: string
+          owner_id: string
+          preset_name: string | null
+          preset_xmp: string | null
+          reject_eyes_closed: boolean
+          reject_head_cut: boolean
+          require_main_subject: boolean
+        }
+        Insert: {
+          created_at?: string
+          focus_threshold?: number
+          id?: string
+          name: string
+          owner_id: string
+          preset_name?: string | null
+          preset_xmp?: string | null
+          reject_eyes_closed?: boolean
+          reject_head_cut?: boolean
+          require_main_subject?: boolean
+        }
+        Update: {
+          created_at?: string
+          focus_threshold?: number
+          id?: string
+          name?: string
+          owner_id?: string
+          preset_name?: string | null
+          preset_xmp?: string | null
+          reject_eyes_closed?: boolean
+          reject_head_cut?: boolean
+          require_main_subject?: boolean
+        }
+        Relationships: []
+      }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string
+        }
+        Relationships: []
+      }
+      photo_results: {
+        Row: {
+          album_id: string
+          created_at: string
+          eyes_closed: boolean
+          face_sharpness: number
+          file_name: string
+          head_cut: boolean
+          id: string
+          main_subject_found: boolean
+          notes: string | null
+          owner_id: string
+        }
+        Insert: {
+          album_id: string
+          created_at?: string
+          eyes_closed: boolean
+          face_sharpness: number
+          file_name: string
+          head_cut: boolean
+          id?: string
+          main_subject_found: boolean
+          notes?: string | null
+          owner_id: string
+        }
+        Update: {
+          album_id?: string
+          created_at?: string
+          eyes_closed?: boolean
+          face_sharpness?: number
+          file_name?: string
+          head_cut?: boolean
+          id?: string
+          main_subject_found?: boolean
+          notes?: string | null
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_results_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      assign_role_for_user: {
+        Args: { _email: string; _user_id: string }
+        Returns: undefined
+      }
+      claim_invitation: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_member: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "photographer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +289,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "photographer"],
+    },
   },
 } as const
