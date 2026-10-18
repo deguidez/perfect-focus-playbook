@@ -90,6 +90,7 @@ export type Database = {
           head_cut: boolean
           id: string
           main_subject_found: boolean
+          manual_category: string | null
           notes: string | null
           owner_id: string
         }
@@ -102,6 +103,7 @@ export type Database = {
           head_cut: boolean
           id?: string
           main_subject_found: boolean
+          manual_category?: string | null
           notes?: string | null
           owner_id: string
         }
@@ -114,6 +116,7 @@ export type Database = {
           head_cut?: boolean
           id?: string
           main_subject_found?: boolean
+          manual_category?: string | null
           notes?: string | null
           owner_id?: string
         }
