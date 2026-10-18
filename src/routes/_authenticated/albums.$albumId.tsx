@@ -226,7 +226,23 @@ function AlbumPage() {
                   <div className="relative aspect-[3/2] bg-muted">
                     {i.thumb && <img src={i.thumb} alt={i.name} loading="lazy" className="h-full w-full object-cover" />}
                     {i.status === "analyzing" && <div className="absolute inset-0 animate-pulse bg-primary/20" />}
-                    {meta && <span className={`absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground ${meta.color}`}>{meta.label}</span>}
+                    {meta && cat && (
+                      <select
+                        aria-label={`Categoria de ${i.name}`}
+                        value={cat}
+                        onChange={(e) => {
+                          const v = e.target.value as Category;
+                          const auto = classify({ ...i.result!, manual_category: null }, settings);
+                          void session.setManualCategory(i.name, v === auto ? null : v);
+                        }}
+                        className={`absolute left-2 top-2 cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground outline-none ${meta.color}`}
+                      >
+                        {CATEGORIES.map((c) => (
+                          <option key={c.id} value={c.id} className="bg-popover text-popover-foreground">{c.label}</option>
+                        ))}
+                      </select>
+                    )}
+                    {i.result?.manual_category && <span className="absolute right-2 top-2 rounded bg-background/80 px-1 font-mono text-[10px] text-foreground">manual</span>}
                   </div>
                   <figcaption className="space-y-0.5 p-2 font-mono text-[11px] text-muted-foreground">
                     <p className="truncate text-foreground">{i.name}</p>

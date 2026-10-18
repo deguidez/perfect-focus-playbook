@@ -1,0 +1,1 @@
+ALTER TABLE public.photo_results ADD COLUMN IF NOT EXISTS manual_category text CHECK (manual_category IN ('boas','desfocadas','olhos_fechados','cabeca_cortada','sem_atleta'));

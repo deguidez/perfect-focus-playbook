@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { analyzePhoto } from "./analyze.functions";
 import { classify, type Category, type CullSettings, type PhotoResult } from "./culling";
 import type { Preset } from "./xmp";
-import { isJpg, listJpgs, prepareImage, renderOutput, writeToDir, type DirHandle } from "./images";
+import { isJpg, listJpgs, removeFromDir, prepareImage, renderOutput, writeToDir, type DirHandle } from "./images";
 
 export type Result = PhotoResult & { notes?: string | null };
 export type Item = {
@@ -157,6 +157,24 @@ export class AlbumSession {
       if (token === this.scanToken) setTimeout(scan, POLL_MS);
     };
     void scan();
+  }
+
+  /** Photographer overrides the folder; saved so it survives reloads, and the exported copy is moved. */
+  async setManualCategory(name: string, cat: Category | null) {
+    const item = this.state.items[name];
+    if (!item?.result) return;
+    const result = { ...item.result, manual_category: cat };
+    this.known.set(name, result);
+    const oldFolder = item.exported;
+    this.update(name, { result });
+    const { error } = await supabase.from("photo_results").update({ manual_category: cat }).eq("album_id", this.albumId).eq("file_name", name);
+    if (error) toast.error(error.message);
+    const outDir = this.state.outDir;
+    if (oldFolder && outDir && this.config && classify(result, this.config) !== oldFolder) {
+      await removeFromDir(outDir, oldFolder, name);
+      this.update(name, { exported: undefined });
+      this.drainExports();
+    }
   }
 
   stopWatching() {

@@ -6,6 +6,10 @@ const settings = { focus_threshold: 60, require_main_subject: true, reject_eyes_
 const sharp = { main_subject_found: true, face_sharpness: 80, eyes_closed: false, head_cut: false };
 
 describe("classify", () => {
+  it("manual choice wins over the AI (eyes closed moved to good)", () =>
+    expect(classify({ ...sharp, eyes_closed: true, manual_category: "boas" }, settings)).toBe("boas"));
+  it("manual choice survives threshold changes", () =>
+    expect(classify({ ...sharp, manual_category: "desfocadas" }, settings)).toBe("desfocadas"));
   it("sharp face above threshold is good", () => expect(classify(sharp, settings)).toBe("boas"));
   it("sharpness below the focus level goes to blurred", () =>
     expect(classify({ ...sharp, face_sharpness: 59 }, settings)).toBe("desfocadas"));

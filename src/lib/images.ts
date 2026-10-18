@@ -53,6 +53,7 @@ type DirHandle = {
   name: string;
   values: () => AsyncIterable<{ kind: string; name: string; getFile?: () => Promise<File> }>;
   getDirectoryHandle: (n: string, o?: { create: boolean }) => Promise<DirHandle>;
+  removeEntry?: (n: string) => Promise<void>;
   getFileHandle: (n: string, o?: { create: boolean }) => Promise<{ createWritable: () => Promise<{ write: (b: Blob) => Promise<void>; close: () => Promise<void> }> }>;
 };
 export type { DirHandle };
@@ -80,4 +81,13 @@ export async function writeToDir(dir: DirHandle, sub: string, name: string, blob
   const w = await fh.createWritable();
   await w.write(blob);
   await w.close();
+}
+
+export async function removeFromDir(dir: DirHandle, sub: string, name: string) {
+  try {
+    const d = await dir.getDirectoryHandle(sub);
+    await d.removeEntry?.(name);
+  } catch {
+    /* already gone */
+  }
 }

@@ -3,6 +3,8 @@ export type PhotoResult = {
   face_sharpness: number;
   eyes_closed: boolean;
   head_cut: boolean;
+  /** Set when the photographer moves the photo by hand; wins over the AI rules. */
+  manual_category?: string | null;
 };
 
 export type CullSettings = {
@@ -24,6 +26,7 @@ export const CATEGORIES: { id: Category; label: string; color: string }[] = [
 
 /** Decide the destination folder. Order: no athlete, blurred, eyes closed, head cut, good. */
 export function classify(r: PhotoResult, s: CullSettings): Category {
+  if (r.manual_category && CATEGORIES.some((c) => c.id === r.manual_category)) return r.manual_category as Category;
   if (s.require_main_subject && !r.main_subject_found) return "sem_atleta";
   if (r.face_sharpness < s.focus_threshold) return "desfocadas";
   if (s.reject_eyes_closed && r.eyes_closed) return "olhos_fechados";
