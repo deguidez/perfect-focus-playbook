@@ -18,3 +18,4 @@
 - Auth state is provided once at the root; sign-out cancels queries and disposes module-level album sessions before clearing credentials. Why: prevent account-switch data leaks and background work under a different identity.
 - Album work (analysis queue, folder watch, auto-export) lives in a module-level per-album session in `src/lib/album-session.ts`, not in React state. Why: it must keep running when the user navigates away from the album page.
 - Auto exposure is a histogram-based LUT in `src/lib/exposure.ts`, applied to "boas" exports before the preset. Why: same fast per-pixel pipeline as presets.
+- VPS deployment must use a separately validated runtime, service identity, directories and local ports; shared hosting changes require explicit validation before activation. Why: protect co-hosted applications and avoid assuming the current hosting output is Node-compatible.
