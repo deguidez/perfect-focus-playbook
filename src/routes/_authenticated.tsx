@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearAlbumSessions } from "@/lib/album-session";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -10,8 +12,9 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function Layout() {
-  const { session, role, loading, user } = useAuth();
+  const { session, role, loading, user, active } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/" });
@@ -22,18 +25,20 @@ function Layout() {
   }
 
   const signOut = async () => {
+    clearAlbumSessions();
+    await qc.cancelQueries();
+    qc.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/" });
+    navigate({ to: "/", replace: true });
   };
 
-  if (!role) {
+  if (!role || !active) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
         <div className="max-w-md text-center">
-          <h1 className="text-3xl">Aguardando convite</h1>
+          <h1 className="text-3xl">Acesso não liberado</h1>
           <p className="mt-3 text-muted-foreground">
-            A conta <span className="text-foreground">{user?.email}</span> ainda não foi convidada. Peça ao fotógrafo principal para
-            enviar um convite para este e-mail.
+            A conta <span className="text-foreground">{user?.email}</span> não tem acesso ativo. Entre em contato com o superadministrador.
           </p>
           <Button variant="outline" className="mt-6" onClick={signOut}>
             Sair
@@ -53,9 +58,9 @@ function Layout() {
           <Link to="/albums" activeProps={{ className: "text-foreground" }}>
             Álbuns
           </Link>
-          {role === "admin" && (
+          {role === "super_admin" && (
             <Link to="/team" activeProps={{ className: "text-foreground" }}>
-              Equipe
+              Usuários e equipes
             </Link>
           )}
         </nav>

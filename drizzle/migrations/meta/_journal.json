@@ -29,6 +29,27 @@
       "when": 1792367174182,
       "tag": "0003_album_rename_pattern",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792367855523,
+      "tag": "0004_super_admin_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792367880904,
+      "tag": "0005_managed_users_and_teams",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792367917234,
+      "tag": "0006_atomic_team_assignment",
+      "breakpoints": true
     }
   ]
 }

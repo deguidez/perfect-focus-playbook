@@ -43,6 +43,7 @@ export class AlbumSession {
   private exportChain: Promise<void> = Promise.resolve();
   private listeners = new Set<() => void>();
   private scanToken = 0;
+  private disposed = false;
 
   constructor(public albumId: string) {}
 
@@ -78,6 +79,7 @@ export class AlbumSession {
 
   async addFiles(files: File[]) {
     await this.loadKnown();
+    if (this.disposed) return;
     const fresh = files.filter((f) => isJpg(f.name) && !this.state.items[f.name]);
     if (!fresh.length) return;
     const next: Record<string, Item> = {};
@@ -101,8 +103,9 @@ export class AlbumSession {
   }
 
   private pump() {
-    while (this.running < CONCURRENCY && this.queue.length && !this.state.paused) {
-      const name = this.queue.shift()!;
+    while (!this.disposed && this.running < CONCURRENCY && this.queue.length && !this.state.paused) {
+      const name = this.queue.shift();
+      if (!name) break;
       const item = this.state.items[name];
       if (!item) continue;
       this.running++;
@@ -117,10 +120,13 @@ export class AlbumSession {
   private async analyzeOne(name: string, file: File) {
     try {
       const prepared = await prepareImage(file, true);
+      if (this.disposed || !prepared.analysis) return;
       this.update(name, { thumb: prepared.thumb });
       for (let attempt = 0; ; ) {
         try {
-          const r = await analyzePhoto({ data: { albumId: this.albumId, fileName: name, image: prepared.analysis! } });
+          if (this.disposed) return;
+          const r = await analyzePhoto({ data: { albumId: this.albumId, fileName: name, image: prepared.analysis } });
+          if (this.disposed) return;
           this.known.set(name, r);
           this.update(name, { status: "done", result: r });
           this.drainExports();
@@ -186,6 +192,15 @@ export class AlbumSession {
     this.set({ inDir: null });
   }
 
+  dispose() {
+    this.disposed = true;
+    this.queue = [];
+    this.stopWatching();
+    this.config = null;
+    this.known.clear();
+    this.set({ items: {}, outDir: null, autoExport: false });
+  }
+
   setOutDir(dir: DirHandle) {
     const items = Object.fromEntries(Object.entries(this.state.items).map(([k, v]) => [k, { ...v, exported: undefined }]));
     this.set({ items, outDir: dir });
@@ -209,17 +224,19 @@ export class AlbumSession {
 
   private drainExports() {
     const { outDir, autoExport, items } = this.state;
-    if (!outDir || !autoExport || !this.config) return;
+    if (this.disposed || !outDir || !autoExport || !this.config) return;
     for (const it of Object.values(items)) {
       if (it.status !== "done" || it.exported || this.exporting.has(it.name)) continue;
       this.exporting.add(it.name);
       this.exportChain = this.exportChain.then(async () => {
         try {
           const cur = this.state.items[it.name];
-          if (!cur?.result || !this.config || this.state.outDir !== outDir) return;
+          if (this.disposed || !cur?.result || !this.config || this.state.outDir !== outDir) return;
           const cat = classify(cur.result, this.config);
           const fileName = this.outputName(cur, cat);
-          await writeToDir(outDir, cat, fileName, await renderOutput(cur.file, this.renderOptionsFor(cat)));
+          const output = await renderOutput(cur.file, this.renderOptionsFor(cat));
+          if (this.disposed) return;
+          await writeToDir(outDir, cat, fileName, output);
           this.update(cur.name, { exported: cat, exportedName: fileName });
         } catch {
           toast.error(`Falha ao gravar ${it.name}`);
@@ -232,6 +249,11 @@ export class AlbumSession {
 }
 
 const sessions = new Map<string, AlbumSession>();
+
+export function clearAlbumSessions() {
+  sessions.forEach((session) => session.dispose());
+  sessions.clear();
+}
 
 export function getAlbumSession(albumId: string) {
   let s = sessions.get(albumId);

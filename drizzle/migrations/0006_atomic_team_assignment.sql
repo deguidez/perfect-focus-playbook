@@ -1,0 +1,3 @@
+CREATE OR REPLACE FUNCTION public.replace_team_memberships(_user_id uuid, _team_ids uuid[]) RETURNS void LANGUAGE plpgsql SET search_path = public AS $$ BEGIN DELETE FROM public.team_members WHERE user_id = _user_id; INSERT INTO public.team_members(team_id, user_id) SELECT DISTINCT unnest(_team_ids), _user_id; END $$;
+REVOKE ALL ON FUNCTION public.replace_team_memberships(uuid, uuid[]) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.replace_team_memberships(uuid, uuid[]) TO service_role;
