@@ -27,6 +27,27 @@ Inventário consultado em 19/10/2026:
 
 Não há uma chave própria de OpenAI no inventário consultado. Isso não é evidência de ausência de outras configurações públicas ou de serviços administrados pela plataforma.
 
+### Configurações exigidas pelo código
+
+Os nomes abaixo são referências do código, não uma afirmação de que seus valores estejam disponíveis para exportação:
+
+| Nome | Uso no destino |
+| --- | --- |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | Configurações públicas de compilação do cliente para o serviço de contas/dados compatível do destino. |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` | Configurações do serviço de contas/dados usadas no servidor. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Credencial privilegiada emitida pelo serviço compatível do destino, exclusivamente no servidor; a credencial do Lovable Cloud não está disponível. |
+| `LOVABLE_API_KEY` | Credencial gerenciada referenciada pela análise atual; exige adaptação para o provedor independente. |
+| `LOVABLE_DB_MIGRATION_URL` | Referência da ferramenta de migrações atual; não é requisito de execução do site nem uma credencial exportável. Definir ferramenta apropriada no destino. |
+| `LOVABLE_CRON_SECRET`, `LOVABLE_CRON_SECRET_PREVIOUS` | Referências do auxiliar de agendamento; não foram encontrados chamadores na aplicação. Não exigir cron sem necessidade comprovada. |
+
+O nome da chave de IA independente será definido junto da adaptação; nenhuma chave foi solicitada ou armazenada nesta preparação. A implementação atual chama `https://ai.gateway.lovable.dev/v1` e `openai/gpt-6-astra` com cabeçalhos e opções do gateway. Para OpenAI direto, revisar URL, autenticação, modelo disponível, opções e resposta estruturada; não apresentar esse identificador do gateway como garantia de modelo disponível no serviço direto.
+
+### Dados e estrutura a conferir após restauração
+
+Tabelas da aplicação: `user_roles`, `invitations` (legado), `albums`, `photo_results`, `profiles`, `teams` e `team_members`. A autenticação também depende das contas e funções do serviço compatível, não apenas destas tabelas.
+
+As sete migrações SQL de referência estão em `drizzle/migrations/`, de `0000_photo_culling_core.sql` a `0006_atomic_team_assignment.sql`. Não executá-las cegamente sobre um export já restaurado: verificar primeiro o histórico e a estrutura existente. `drizzle/schema.ts` está vazio e não reconstrói essas migrações. Conferir totais, vínculos de donos, categorias manuais, presets, renomeação, exposição, perfis ativos e equipes; nunca imprimir hashes ou dados privados nos registros.
+
 ## Serviços a preparar no destino
 
 - **Contas e dados compatíveis:** restauração do export, preservação de IDs e políticas de isolamento, acesso privilegiado próprio e seguro para criação de contas. As credenciais privilegiadas do Lovable Cloud não estão disponíveis para exportação.
@@ -36,6 +57,8 @@ Não há uma chave própria de OpenAI no inventário consultado. Isso não é ev
 - **HTTPS e DNS:** criar somente o site e o registro de `ia.evenon.com.br`, depois da validação; não editar o Evenon nem os registros dos demais sites.
 
 Guardar credenciais no ambiente protegido do destino, nunca no código ou em um arquivo `.env` versionado. Um formulário de segredos do Lovable não instala nem configura automaticamente segredos na VPS.
+
+O projeto atual não define um comando de início para produção Node nem um preset Node explícito. A configuração existente é voltada ao hosting Lovable. Não assumir que `vite preview` é um serviço de produção ou que um arquivo de saída específico existe antes de configurar e validar o destino.
 
 ## Ordem de execução
 

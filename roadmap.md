@@ -1,5 +1,5 @@
 # Work
-- [ ] Prepare the supported migration/export handoff and service/secret-name inventory for ia.evenon.com.br; update repository documentation without committing credentials or private exports.
+- [x] Prepare the supported migration/export handoff and service/secret-name inventory for ia.evenon.com.br; update repository documentation without committing credentials or private exports.
 - [ ] Confirm GitHub receives the updated code (blocked: Git connection/status must be checked by the user in Lovable settings).
 - [x] Replace Google entry with email/password, without public signup.
 - [x] Add exclusive superadministrator user and team management; preserve owner-only albums.
