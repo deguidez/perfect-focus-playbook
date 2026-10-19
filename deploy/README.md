@@ -32,9 +32,13 @@ Resultado anterior informado: Node 14.17.6, npm 6.14.15, Nginx 1.24.0, 1,6 GiB d
 
 ## Exportar contas e dados com segurança
 
+Esta exportação é iniciada pelo titular no Lovable; nenhum arquivo de contas ou dados foi gerado por esta preparação. Este projeto usa uma única instância de dados para a prévia e o aplicativo publicado.
+
 No Lovable, abrir **Mais → Database → Manage → Settings → Export project data → Export data → Database → Export → Start export**. O arquivo fica disponível pelo link enviado por e-mail ou em **Mais → Storage**.
 
 O export oficial inclui estrutura, dados e contas com hashes de senha. Não enviar esse arquivo pelo chat nem colocá-lo numa pasta pública do site: transferir por canal protegido para o responsável pela restauração no destino. Não gerar dumps alternativos nem reconstruir contas copiando linhas manualmente.
+
+Limites do método suportado: banco de até 15 GB, arquivo de até 5 GB e uma exportação a cada 24 horas. O serviço precisa estar em execução. O arquivo contém hashes, não senhas consultáveis. Uma restauração compatível pode preservar as senhas; se isso não for possível, configurar recuperação por e-mail e pedir a redefinição aos usuários, sem atribuir senhas compartilhadas.
 
 Segredos, configurações de provedores e arquivos armazenados não acompanham esse export. Se houver arquivos em Storage, baixar separadamente pelo Lovable. O código analisado não usa armazenamento de originais na nuvem: os JPG originais ficam nos computadores dos fotógrafos.
 
@@ -59,6 +63,14 @@ Não apontar o domínio para uma instalação parcial: entrada, análise de uma 
 - Exportação validada, instalação anterior disponível e procedimento de retorno definidos antes da troca do DNS.
 
 Nenhum desses testes de destino foi realizado. A preparação atual não é uma instalação concluída.
+
+## Código e GitHub
+
+O inventário para a migração fica em [MIGRATION.md](./MIGRATION.md). A documentação não contém valores de chaves nem uma cópia dos dados privados.
+
+Quando o projeto está conectado ao GitHub, o Lovable sincroniza as alterações de código com a branch conectada. Conferir a conexão e o estado em **Configurações do projeto → Git**; esta preparação não comprova que o GitHub recebeu os arquivos. Não desconectar para tentar corrigir a sincronização: reconectar cria outro repositório.
+
+Banco de dados, contas, arquivos privados e segredos não são transferidos pela sincronização de código. Não adicionar o export ao repositório, mesmo privado. A atualização do código também não instala o serviço na VPS.
 
 ## Alternativa sem migrar os serviços
 
